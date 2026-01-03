@@ -382,20 +382,25 @@ const WordBuildingGame = ({
     // speedStopwatch intentionally excluded - only calling methods
   ]);
 
-  // Handle Continue button
+  // Handle Continue button (only for correct answers)
   const handleContinue = useCallback(() => {
     playClick();
-    if (bottomBarState === 'correct') {
-      externalOnCorrect?.(wordData.wordChars);
-    }
+    externalOnCorrect?.(wordData.wordChars);
     resetGame();
-  }, [
-    playClick,
-    bottomBarState,
-    externalOnCorrect,
-    wordData.wordChars,
-    resetGame
-  ]);
+  }, [playClick, externalOnCorrect, wordData.wordChars, resetGame]);
+
+  // Handle Try Again button (for wrong answers)
+  const handleTryAgain = useCallback(() => {
+    playClick();
+    // Clear placed tiles and reset to check state, but keep the same word
+    setPlacedTiles([]);
+    setIsChecking(false);
+    setBottomBarState('check');
+    // Restart timing for the retry
+    speedStopwatch.reset();
+    speedStopwatch.start();
+  }, [playClick]);
+  // Note: speedStopwatch deliberately excluded - only calling methods
 
   // Handle tile click - add or remove
   const handleTileClick = useCallback(
@@ -424,8 +429,9 @@ const WordBuildingGame = ({
   }
 
   const canCheck = placedTiles.length > 0 && !isChecking;
-  const showContinue =
-    bottomBarState === 'correct' || bottomBarState === 'wrong';
+  const showContinue = bottomBarState === 'correct';
+  const showTryAgain = bottomBarState === 'wrong';
+  const showFeedback = showContinue || showTryAgain;
 
   return (
     <div
@@ -527,7 +533,7 @@ const WordBuildingGame = ({
           <div
             className={clsx(
               'flex items-center gap-2 transition-all duration-500 sm:gap-3 md:gap-4',
-              showContinue
+              showFeedback
                 ? 'translate-x-0 opacity-100'
                 : 'pointer-events-none -translate-x-4 opacity-0 sm:-translate-x-8'
             )}
@@ -565,14 +571,29 @@ const WordBuildingGame = ({
               borderRadius='3xl'
               className={clsx(
                 'w-auto px-6 py-2.5 text-lg font-medium transition-all duration-150 sm:px-12 sm:py-3 sm:text-xl',
-                !canCheck && !showContinue && 'cursor-default opacity-60'
+                !canCheck &&
+                  !showContinue &&
+                  !showTryAgain &&
+                  'cursor-default opacity-60'
               )}
-              onClick={showContinue ? handleContinue : handleCheck}
+              onClick={
+                showContinue
+                  ? handleContinue
+                  : showTryAgain
+                    ? handleTryAgain
+                    : handleCheck
+              }
             >
               <span className='max-sm:hidden'>
-                {showContinue ? 'continue' : 'check'}
+                {showContinue
+                  ? 'continue'
+                  : showTryAgain
+                    ? 'try again'
+                    : 'check'}
               </span>
               {showContinue ? (
+                <CircleArrowRight className='h-8 w-8' />
+              ) : showTryAgain ? (
                 <CircleArrowRight className='h-8 w-8' />
               ) : (
                 <CircleCheck className='h-8 w-8' />
@@ -580,7 +601,7 @@ const WordBuildingGame = ({
             </ActionButton>
           </div>
 
-          {!showContinue && (
+          {!showContinue && !showTryAgain && (
             <div className='flex h-[68px] items-end sm:h-[72px]'>
               <ActionButton
                 borderBottomThickness={12}
