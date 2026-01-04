@@ -58,7 +58,17 @@ const tileEntryVariants = {
   }
 };
 
-// Celebration bounce animation for correct answers
+// Celebration bounce animation for correct answers - Duolingo-style sequential jump
+const celebrationContainerVariants = {
+  idle: {},
+  celebrate: {
+    transition: {
+      staggerChildren: 0.18,
+      delayChildren: 0.08
+    }
+  }
+};
+
 const celebrationBounceVariants = {
   idle: {
     y: 0,
@@ -86,7 +96,6 @@ const tileBaseStyles =
 interface TileProps {
   id: string;
   char: string;
-  reading?: string;
   onClick: () => void;
   isDisabled?: boolean;
   isKanji?: boolean;
@@ -94,7 +103,7 @@ interface TileProps {
 
 // Active tile - uses layoutId for smooth position animations
 const ActiveTile = memo(
-  ({ id, char, reading, onClick, isDisabled, isKanji }: TileProps) => {
+  ({ id, char, onClick, isDisabled, isKanji }: TileProps) => {
     return (
       <motion.button
         layoutId={id}
@@ -114,7 +123,7 @@ const ActiveTile = memo(
         transition={springConfig}
         lang={isKanji ? 'ja' : undefined}
       >
-        <FuriganaText text={char} reading={reading} />
+        {char}
       </motion.button>
     );
   }
@@ -124,15 +133,7 @@ ActiveTile.displayName = 'ActiveTile';
 
 // Blank placeholder - no layoutId, just takes up space
 const BlankTile = memo(
-  ({
-    char,
-    reading,
-    isKanji
-  }: {
-    char: string;
-    reading?: string;
-    isKanji?: boolean;
-  }) => {
+  ({ char, isKanji }: { char: string; isKanji?: boolean }) => {
     return (
       <div
         className={clsx(
@@ -142,9 +143,7 @@ const BlankTile = memo(
           isKanji ? 'text-3xl sm:text-4xl' : 'text-xl sm:text-2xl'
         )}
       >
-        <span className='opacity-0'>
-          <FuriganaText text={char} reading={reading} />
-        </span>
+        <span className='opacity-0'>{char}</span>
       </div>
     );
   }
@@ -514,23 +513,28 @@ const KanjiWordBuildingGame = ({
 
       {/* Answer Row Area - shows placed tiles */}
       <div className='flex w-full flex-col items-center'>
-        <div className='flex min-h-[5rem] w-full items-center justify-center border-b-2 border-[var(--border-color)] px-2 pb-2 md:w-3/4 lg:w-2/3 xl:w-1/2'>
+        <div className='flex min-h-[5rem] w-full items-center border-b-2 border-[var(--border-color)] px-2 pb-2 md:w-3/4 lg:w-2/3 xl:w-1/2'>
           <motion.div
-            className='flex flex-row flex-wrap justify-center gap-3'
-            variants={celebrationBounceVariants}
+            className='flex flex-row flex-wrap justify-start gap-3'
+            variants={celebrationContainerVariants}
             initial='idle'
             animate={isCelebrating ? 'celebrate' : 'idle'}
           >
+            {/* Render placed tiles in the answer row */}
             {placedTiles.map(char => (
-              <ActiveTile
-                key={`placed-${char}`}
-                id={`tile-${char}`}
-                char={char}
-                reading={isReverse ? getKanjiReading(char) : undefined}
-                onClick={() => handleTileClick(char)}
-                isDisabled={isChecking && bottomBarState !== 'wrong'}
-                isKanji={isReverse}
-              />
+              <motion.div
+                key={`answer-tile-${char}`}
+                variants={celebrationBounceVariants}
+                style={{ originY: 1 }}
+              >
+                <ActiveTile
+                  id={`tile-${char}`}
+                  char={char}
+                  onClick={() => handleTileClick(char)}
+                  isDisabled={isChecking && bottomBarState !== 'wrong'}
+                  isKanji={isReverse}
+                />
+              </motion.div>
             ))}
           </motion.div>
         </div>
@@ -554,11 +558,7 @@ const KanjiWordBuildingGame = ({
               style={{ perspective: 1000 }}
             >
               {/* Blank tile underneath */}
-              <BlankTile
-                char={char}
-                reading={isKanjiTile ? getKanjiReading(char) : undefined}
-                isKanji={isKanjiTile}
-              />
+              <BlankTile char={char} isKanji={isKanjiTile} />
 
               {/* Active tile on top when NOT placed */}
               {!isPlaced && (
@@ -566,7 +566,6 @@ const KanjiWordBuildingGame = ({
                   <ActiveTile
                     id={`tile-${char}`}
                     char={char}
-                    reading={isKanjiTile ? getKanjiReading(char) : undefined}
                     onClick={() => handleTileClick(char)}
                     isDisabled={isChecking && bottomBarState !== 'wrong'}
                     isKanji={isKanjiTile}
