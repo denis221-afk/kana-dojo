@@ -246,6 +246,10 @@ const baseThemeSets: BaseThemeGroup[] = [
         backgroundColor: 'oklch(22.0% 0.058 35.0 / 1)',
         mainColor: 'oklch(75.0% 0.195 40.0 / 1)',
         secondaryColor: 'oklch(85.0% 0.155 70.0 / 1)',
+        id: 'origami-crane',
+        backgroundColor: 'oklch(95.0% 0.008 90.0 / 1)',
+        mainColor: 'oklch(55.0% 0.220 25.0 / 1)',
+        secondaryColor: 'oklch(45.0% 0.150 20.0 / 1)'
       },
       {
         id: 'matcha-cream',
