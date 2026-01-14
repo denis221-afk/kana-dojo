@@ -242,6 +242,12 @@ const baseThemeSets: BaseThemeGroup[] = [
     icon: Moon,
     themes: [
       {
+        id: 'torii-sunset',
+        backgroundColor: 'oklch(22.0% 0.058 35.0 / 1)',
+        mainColor: 'oklch(75.0% 0.195 40.0 / 1)',
+        secondaryColor: 'oklch(85.0% 0.155 70.0 / 1)',
+      },
+      {
         id: 'matcha-cream',
         backgroundColor: 'oklch(92.0% 0.025 140.0 / 1)',
         mainColor: 'oklch(55.0% 0.180 140.0 / 1)',
